@@ -1,0 +1,195 @@
+Plagiarism detection
+====================
+
+Time spent per group member:
+Mehdi 6h
+Theodor 6h
+Baser 6h
+* TODO: TODO
+* TODO: TODO
+* TODO: TODO
+
+Task 1: Analyzing the slow program
+----------------------------------
+
+**Question**
+What is the asymptotic complexity of findSimilarity?
+Answer in terms of N, the total number of 5-grams in the input files.
+Assume that the number of duplicate occurrences of 5-grams is a small constant - that is, there is not much plagiarised text.
+Explain briefly.
+
+static BST<PathPair, Integer> findSimilarity(BST<Path, Ngram[]> files, BST<Ngram, ArrayList<Path>> index) {
+       // TODO: Use index to make this function much more efficient.
+       // N.B. Path is Java's class for representing filenames.
+       // PathPair represents a pair of Paths (see PathPair.java).
+       BST<PathPair, Integer> similarity = new BST<PathPair, Integer>(); // O(1)
+       for (Path path1 : files) {                                        // D+1 ∈ O(D)
+           for (Path path2 : files) {                                    // D+1 ∈ O(D)
+               if (path1.equals(path2))                                  // O(1)
+                   continue;                                             // O(1)
+               Ngram[] ngrams1 = files.get(path1);                       // O(1)
+               Ngram[] ngrams2 = files.get(path2);                      // O(1)
+               for (Ngram ngram1 : ngrams1) {                            // K+1 ∈ O(K)
+                   for (Ngram ngram2 : ngrams2) {                        // K+1 ∈ O(K)
+                       if (ngram1.equals(ngram2)) {                     // O(1)
+                           PathPair pair = new PathPair(path1, path2);    // O(1)
+                           if (!similarity.containsKey(pair))              // O(1)
+                               similarity.put(pair, 0);                     // O(1)
+                           similarity.put(pair, similarity.get(pair) + 1);  // O(1)
+                       }
+                   }
+               }
+           }
+       }
+       return similarity;
+}
+
+The sequences gives: (O(D)*O(D)) * (O(K)*O(K)) = O(D²) * O(K²) = O(D²*K²) = O((D*K)²)
+then vi know that N = D*K 
+so T(N) = O(N²)
+
+TODO
+
+**Question**
+How long did the program take on the 'small' and 'medium' directories?
+Is the ratio between the times what you would expect,
+given the asymptotic complexity? Explain very briefly why.
+
+for the small directory it took 3,32 sec when N = 20 000
+for the medium directory it took 361,67 sec when N = 200 000 
+
+what we expectd was that if time complexity of O((20 000)²) = 3,32 
+then time complexity of O((200 000)²) = O((20 000 * 10)²) = 3,32 * 100 = 332 sec which is close to the time complexity we got by runung the program
+
+TODO
+
+**Question**
+How long do you predict the program would take to run on
+the 'huge' directory? Show your calculations.
+
+by the theorical method: 
+
+if time complexity of O((200 000)²) = 361,67
+
+then: 
+O((4 000 000)²) = O((200 000 * 20)²) = 361.67 * 400 = 144 668 at least 
+
+
+TODO
+
+Task 2: Using an index
+----------------------
+
+**Question**
+Which of the three BSTs in the program usually become unbalanced?
+Say very briefly:
+- how you observed this,
+- why you think this is the case.
+
+When we ran hte program for each directory we got the following results:
+
+small:
+files: BST, size 7, height 7
+index: BST, size 19748, height 35 
+similarity: BST, size 16, height 8 
+
+medium:
+files: BST, size 110, height 110
+index: BST, size 208024, height 50 
+similarity: BST, size 874, height 23
+
+big:
+files: BST, size 953, height 953
+index: BST, size 2067059, height 67 
+similarity: BST, size 54324, height 103
+
+huge:
+files: BST, size 1418, height 1418
+index: BST, size 3852238, height 86 
+similarity: BST, size 162386, height 167
+
+All of these three BSTs become unbalanced because the height of these BSTs are not O(log n) there n is the size of BST (number of nodes)
+the height are not either 2 *log2 (size +1). The files BST has the same height as its size, index and similarity BSTs have heights much more than log n
+
+TODO
+
+**Question** (optional)
+Is there a simple way to stop these trees becoming unbalanced?
+
+TODO (optional)
+
+Task 3: Using scapegoat trees instead of BSTs
+---------------------------------------------
+
+For the below questions, we denote by N the total number of 5-grams.
+We assume there is a (small) constant number of duplicate occurrences of 5-grams.
+
+**Question**
+What is the asymptotic complexity of buildIndex?
+Justify briefly.
+   
+    static BST<Ngram, ArrayList<Path>> buildIndex(BST<Path, Ngram[]> files) {
+        BST<Ngram, ArrayList<Path>> index = new BST<Ngram, ArrayList<Path>>(); // key 5-grams, value = a list of filenames that contain 5-gram 
+        // TODO: Build index of n-grams.
+            
+        for(Path path : files){                    // D+1 ∈ O(D)
+            
+            for(Ngram  n : files.get(path)){    //   K+1 ∈ O(K)
+                if(index.containsKey(n)){        // O(1)
+                    ArrayList<Path> list = index.get(n);  // O(1)
+                    list.add(path);                       // O(1)
+                    index.put(n, list);                   // O(log N)
+                }
+                else{
+                    ArrayList<Path> list = new ArrayList<Path>(); // O(1)
+                    list.add(path);                               // O(1)
+                    index.put(n, list);                           // O(log N)
+                }
+
+            }
+        }
+
+        return index;      // O(1)
+    }
+
+T(N) ∈ O(D*K)  * O(log N)  ∈  O(N log N)
+
+TODO
+
+**Question**
+What is the asymptotic complexity of findSimilarity?
+Justify briefly.
+
+T(N) ∈ O(N Log N) if there is total N 5-grams and put operation takes log N complexity.
+TODO
+
+**Question** (optional)
+Instead of the previous assumption, we now allow an arbitrary total similarity score S.
+Express the asymptotic complexity of the two functions in terms of both N and S (at the same time).
+
+TODO (optional)
+
+Appendix: general information
+=============================
+
+**Question**
+Do you know of any bugs or limitations?
+Not yet. 
+TODO
+
+**Question**
+Did you collaborate with any other students on this lab?
+If so, write with whom and in what way you collaborated.
+Also list any resources (including the web) you have used in creating your design.
+
+TODO
+
+**Question**
+Did you encounter any serious problems?
+
+TODO
+
+**Question**
+What is your feedback on this assignment?
+
+TODO
