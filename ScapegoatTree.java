@@ -19,7 +19,7 @@ import java.util.Iterator;
  *  @author Kevin Wayne
  *  @author Nick Smallbone
  *  @author Christian Sattler
- *  @author You!
+ *  @author Mehdi Haidari
  */
 public class ScapegoatTree<Key extends Comparable<Key>, Value> implements Iterable<Key> {
 
